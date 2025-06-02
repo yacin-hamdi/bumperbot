@@ -21,7 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
             'simple_publisher = bumperbot_python_examples.simple_publisher:main',
-            'simple_subscriber = bumperbot_python_examples.simple_subscriber:main'
+            'simple_subscriber = bumperbot_python_examples.simple_subscriber:main',
+            'simple_parameter = bumperbot_python_examples.simple_parameter:main'
         ],
     },
 )
