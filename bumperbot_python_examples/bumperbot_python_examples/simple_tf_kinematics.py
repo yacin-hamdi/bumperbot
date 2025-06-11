@@ -6,6 +6,7 @@ from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from geometry_msgs.msg import TransformStamped
 from bumperbot_msgs.srv import GetTransform
+from tf_transformations import quaternion_from_euler, quaternion_multiply, quaternion_inverse
 import math
 
 
@@ -24,6 +25,9 @@ class SimpleTFKinematics(Node):
 
         self.x_increment_ = 0.01
         self.last_x_= 0.0
+        self.last_orientation_ = quaternion_from_euler(0.0, 0.0, 0.0)
+        self.orientation_increment_ = quaternion_from_euler(0.0, 0.0, 0.05)
+        self.orientation_count_ = 0
 
         self.static_transform_stamped.header.stamp = self.get_clock().now().to_msg()
         self.static_transform_stamped.header.frame_id = "base"
@@ -51,17 +55,28 @@ class SimpleTFKinematics(Node):
         self.dynamic_transform_stamped.header.stamp = self.get_clock().now().to_msg()
         self.dynamic_transform_stamped.header.frame_id = "odom"
         self.dynamic_transform_stamped.child_frame_id = "base"
-        self.dynamic_transform_stamped.transform.translation.x = 0.0
+        
+        self.dynamic_transform_stamped.transform.translation.x = self.x_increment_ + self.last_x_
         self.dynamic_transform_stamped.transform.translation.y = 0.0
         self.dynamic_transform_stamped.transform.translation.z = 0.0
 
-        self.dynamic_transform_stamped.transform.rotation.x = self.x_increment_ + self.last_x_
-        self.dynamic_transform_stamped.transform.rotation.y = 0.0
-        self.dynamic_transform_stamped.transform.rotation.z = 0.0
-        self.dynamic_transform_stamped.transform.rotation.w = 1.0
+        q = quaternion_multiply(self.last_orientation_, self.orientation_increment_)
 
-        self.last_x_ = self.dynamic_transform_stamped.transform.rotation.x
+        self.dynamic_transform_stamped.transform.rotation.x = q[0]
+        self.dynamic_transform_stamped.transform.rotation.y = q[1]
+        self.dynamic_transform_stamped.transform.rotation.z = q[2]
+        self.dynamic_transform_stamped.transform.rotation.w = q[3]
+
+        
         self.dynamic_tf_broadcaster.sendTransform(self.dynamic_transform_stamped)
+
+        self.last_x_ = self.dynamic_transform_stamped.transform.translation.x
+        self.last_orientation_ = q
+        self.orientation_count_ += 1
+
+        if self.orientation_count_ >= 100:
+            self.orientation_increment_ = quaternion_inverse(self.orientation_increment_)
+            self.orientation_count_ = 0
 
     def transformCallback(self, req, res):
         self.get_logger().info(f"Requested transform between {req.frame_id} and {req.child_frame_id}")
