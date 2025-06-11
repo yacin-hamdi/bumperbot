@@ -19,12 +19,14 @@ add_executable(simple_subscriber src/simple_subscriber.cpp)
 add_executable(simple_parameter src/simple_parameter.cpp)
 add_executable(simple_tf_kinematics src/simple_tf_kinematics.cpp)
 add_executable(simple_service_server src/simple_service_server.cpp)
+add_executable(simple_service_client src/simple_service_client.cpp)
 
 ament_target_dependencies(simple_publisher rclcpp std_msgs)
 ament_target_dependencies(simple_subscriber rclcpp std_msgs)
 ament_target_dependencies(simple_parameter rclcpp rcl_interfaces)
 ament_target_dependencies(simple_tf_kinematics rclcpp geometry_msgs tf2_ros)
 ament_target_dependencies(simple_service_server rclcpp bumperbot_msgs)
+ament_target_dependencies(simple_service_client rclcpp bumperbot_msgs)
 
 install(TARGETS
   simple_publisher
@@ -32,6 +34,7 @@ install(TARGETS
   simple_parameter
   simple_tf_kinematics
   simple_service_server
+  simple_service_client
   DESTINATION lib/${PROJECT_NAME}
 )
 
