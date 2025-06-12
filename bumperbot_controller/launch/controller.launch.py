@@ -66,7 +66,7 @@ def generate_launch_description():
 
             Node(
                 package="bumperbot_controller", 
-                executable="simple_controlle.py",
+                executable="simple_controller.py",
                 parameters=[{"wheel_radius": wheel_radius,
                             "wheel_seperation": wheel_seperation}],
                 condition=IfCondition(use_python)
