@@ -41,6 +41,7 @@ class SimpleController(Node):
         self.wheel_cmd_pub_ = self.create_publisher(Float64MultiArray, 
                                                     "simple_velocity_controller/commands", 
                                                     10)
+        
         self.vel_sub_ = self.create_subscription(TwistStamped, 
                                                  "bumperbot_controller/cmd_vel", 
                                                  self.velCallback, 
@@ -76,6 +77,7 @@ class SimpleController(Node):
         wheel_speed_msg = Float64MultiArray()
         wheel_speed_msg.data = [wheel_speed[1, 0], wheel_speed[0, 0]]
         self.wheel_cmd_pub_.publish(wheel_speed_msg)
+        pass
 
     def positionCallback(self, msg:JointState):
         dpos_left = msg.position[1] - self.left_wheel_prev_pos
@@ -112,6 +114,7 @@ class SimpleController(Node):
 
         self.odom_msg_.twist.twist.linear.x = linear_vel
         self.odom_msg_.twist.twist.angular.z = angular_vel
+        
 
         self.transform_stamped_.transform.translation.x = self.x_
         self.transform_stamped_.transform.translation.y = self.y_
