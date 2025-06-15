@@ -33,6 +33,7 @@ class SimpleController(Node):
 
         self.odom_msg_ = Odometry()
         self.odom_msg_.header.frame_id = "odom"
+        self.odom_msg_.child_frame_id = "base_footprint"
     
 
         self.get_logger().info(f"using wheel radius: {self.wheel_radius}")

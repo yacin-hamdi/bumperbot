@@ -19,11 +19,13 @@ class NoisyController(Node):
     def __init__(self):
         super().__init__("test_controller")
 
-        self.declare_parameter("wheel_separation", value="0.17")
-        self.declare_parameter("wheel_radius" value="0.033")
-        
+        self.declare_parameter("wheel_separation", value=0.17)
+        self.declare_parameter("wheel_radius", value=0.033)
+
         self.wheel_radius_ = self.get_parameter("wheel_radius").get_parameter_value().double_value
         self.wheel_seperation_ = self.get_parameter("wheel_separation").get_parameter_value().double_value
+
+        
 
         self.conversion_ = np.array([[self.wheel_radius_/2, self.wheel_radius_/2], 
                                      [self.wheel_radius_/ self.wheel_seperation_, -self.wheel_radius_ / self.wheel_seperation_]])
@@ -55,46 +57,40 @@ class NoisyController(Node):
         self.odom_pub_ = self.create_publisher(Odometry, 
                                                "bumperbot_controller/odom_noisy", 
                                                10)
-        
-
-    def velCallback(self, msg: Twist):
-        vels = np.array([[msg.linear.x],
-                         [msg.angular.z]])
-        
-        inv_conversion = np.linalg.inv(self.conversion_)
-        wheels_vel = np.matmul(inv_conversion, vels)
-        wheels_vel_msg = Float64MultiArray()
-        wheels_vel_msg.data = [wheels_vel[0, 0], wheels_vel[1, 0]]
-        self.wheels_pub_.publish(wheels_vel_msg)
 
 
     def odomCallback(self, msg: JointState):
-        wheel_right_pos = msg.position[0] * np.random.normal(0, 0.005)
-        wheel_left_pos = msg.position[1] * np.random.normal(0, 0.005)
+        wheel_right_pos = msg.position[0] + np.random.normal(0, 0.005)
+        wheel_left_pos = msg.position[1] + np.random.normal(0, 0.005)
+
+        
 
         dpos_right = wheel_right_pos - self.last_right_wheel_pos
         dpos_left = wheel_left_pos - self.last_left_wheel_pos
-
         dt = Time.from_msg(msg.header.stamp) - self.last_time
-        wheel_right_vel = dpos_right / (dt.nanoseconds / S_TO_NS)
-        wheel_left_vel = dpos_left / (dt.nanoseconds / S_TO_NS)
 
         self.last_right_wheel_pos = msg.position[0]
         self.last_left_wheel_pos = msg.position[1]
         self.last_time = Time.from_msg(msg.header.stamp)
 
-        linear_vel = (self.wheel_radius_ * wheel_left_vel + self.wheel_radius_ * wheel_right_vel) / 2
-        angular_vel = (self.wheel_radius_ * wheel_left_vel - self.wheel_radius_ * wheel_right_vel) / self.wheel_seperation_
 
-        position = linear_vel * dt.nanoseconds / S_TO_NS
-        orientation = angular_vel * dt.nanoseconds / S_TO_NS
+        wheel_right_vel = dpos_right / (dt.nanoseconds / S_TO_NS)
+        wheel_left_vel = dpos_left / (dt.nanoseconds / S_TO_NS)
+
+       
+
+        linear_vel = (self.wheel_radius_ * wheel_left_vel + self.wheel_radius_ * wheel_right_vel) / 2
+        angular_vel = (self.wheel_radius_ * wheel_right_vel - self.wheel_radius_ * wheel_left_vel) / self.wheel_seperation_
+
+        position = linear_vel * (dt.nanoseconds / S_TO_NS)
+        orientation = angular_vel * (dt.nanoseconds / S_TO_NS)
 
         
         self.theta_ += orientation
         self.x_ += position * math.cos(self.theta_)
         self.y_ += position * math.sin(self.theta_)
 
-        q = quaternion_from_euler(0.0, 0.0, self.theta_)
+        q = quaternion_from_euler(0, 0, self.theta_)
 
         self.odom.header.stamp = self.get_clock().now().to_msg()
         self.odom.pose.pose.position.x = self.x_

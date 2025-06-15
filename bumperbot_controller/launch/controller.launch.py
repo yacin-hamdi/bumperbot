@@ -19,7 +19,7 @@ def noisy_controller(context, *args, **kwargs):
         ]
     )
 
-    return noisy_controller_node
+    return [noisy_controller_node]
 
 def generate_launch_description():
 
@@ -122,8 +122,8 @@ def generate_launch_description():
         use_python_arg, 
         wheel_radius_arg, 
         wheel_separation_arg,
-        wheel_radius_arg, 
-        wheel_separation_arg, 
+        wheel_radius_error_arg, 
+        wheel_separation_error_arg, 
         joint_state_broadcaster_spawner,
         wheel_controller_spawner,
         simple_controller,
