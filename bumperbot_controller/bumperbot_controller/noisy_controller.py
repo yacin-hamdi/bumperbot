@@ -15,11 +15,16 @@ import math
 
 
 
-class TestController(Node):
+class NoisyController(Node):
     def __init__(self):
         super().__init__("test_controller")
-        self.wheel_radius_ = 0.033
-        self.wheel_seperation_ = 0.17
+
+        self.declare_parameter("wheel_separation", value="0.17")
+        self.declare_parameter("wheel_radius" value="0.033")
+        
+        self.wheel_radius_ = self.get_parameter("wheel_radius").get_parameter_value().double_value
+        self.wheel_seperation_ = self.get_parameter("wheel_separation").get_parameter_value().double_value
+
         self.conversion_ = np.array([[self.wheel_radius_/2, self.wheel_radius_/2], 
                                      [self.wheel_radius_/ self.wheel_seperation_, -self.wheel_radius_ / self.wheel_seperation_]])
         
@@ -33,21 +38,14 @@ class TestController(Node):
 
         self.odom = Odometry()
         self.odom.header.frame_id = "odom"
+        self.odom.child_frame_id = "base_footprint_ekf"
 
         self.transform_ = TransformStamped()
         self.transform_.header.frame_id = "odom"
-        self.transform_.child_frame_id = "base_footprint"
+        self.transform_.child_frame_id = "base_footprint_noisy"
 
         self.tf_ = TransformBroadcaster(self)
         
-        self.wheels_pub_ = self.create_publisher(Float64MultiArray, 
-                                                 "simple_velocity_controller/commands", 
-                                                 10)
-        
-        self.vel_sub_ = self.create_subscription(Twist, 
-                                                 "bumperbot_controller/cmd_vel", 
-                                                 self.velCallback, 
-                                                 10)
         
         self.wheel_joint_sub_ = self.create_subscription(JointState, 
                                                          "joint_states", 
@@ -55,7 +53,7 @@ class TestController(Node):
                                                          10)
         
         self.odom_pub_ = self.create_publisher(Odometry, 
-                                               "odom", 
+                                               "bumperbot_controller/odom_noisy", 
                                                10)
         
 
@@ -71,8 +69,8 @@ class TestController(Node):
 
 
     def odomCallback(self, msg: JointState):
-        wheel_right_pos = msg.position[0]
-        wheel_left_pos = msg.position[1]
+        wheel_right_pos = msg.position[0] * np.random.normal(0, 0.005)
+        wheel_left_pos = msg.position[1] * np.random.normal(0, 0.005)
 
         dpos_right = wheel_right_pos - self.last_right_wheel_pos
         dpos_left = wheel_left_pos - self.last_left_wheel_pos
@@ -130,7 +128,7 @@ class TestController(Node):
 
 def main():
     rclpy.init()
-    node = TestController()
+    node = NoisyController()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

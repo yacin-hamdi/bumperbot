@@ -40,7 +40,7 @@ install(
 
 Install(PROGRAMS
   ${PROJECT_NAME}/simple_controller.py
-  ${PROJECT_NAME}/test_controller.py
+  ${PROJECT_NAME}/noisy_controller.py
   DESTINATION lib/${PROJECT_NAME}
 
 )
