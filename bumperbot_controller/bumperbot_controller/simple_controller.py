@@ -78,7 +78,7 @@ class SimpleController(Node):
         wheel_speed_msg = Float64MultiArray()
         wheel_speed_msg.data = [wheel_speed[1, 0], wheel_speed[0, 0]]
         self.wheel_cmd_pub_.publish(wheel_speed_msg)
-        pass
+        
 
     def positionCallback(self, msg:JointState):
         dpos_left = msg.position[1] - self.left_wheel_prev_pos

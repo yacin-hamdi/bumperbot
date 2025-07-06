@@ -54,6 +54,7 @@
                 <parameters>$(find bumperbot_controller)/config/bumperbot_controllers.yaml</parameters>
             </plugin>
             <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">   
+                <topic>/imu/data</topic>
             </plugin>
         </xacro:unless>
     </gazebo>

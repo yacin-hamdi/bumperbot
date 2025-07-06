@@ -27,7 +27,7 @@ def generate_launch_description():
         executable="joint_state_publisher_gui"
     )
 
-    rviz_mode = Node(
+    rviz_node = Node(
         package="rviz2",
         executable="rviz2",
         name='rviz2',
@@ -38,6 +38,6 @@ def generate_launch_description():
         model_arg,
         robot_state_publisher,
         joint_state_publisher_gui,
-        rviz_mode
+        rviz_node
 
     ])
