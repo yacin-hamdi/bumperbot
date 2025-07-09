@@ -48,7 +48,6 @@ def generate_launch_description():
     )
 
     
-    
     model_path = str(Path(bumperbot_description_dir).parent.resolve())
     model_path += pathsep + os.path.join(bumperbot_description_dir, 'models')
     
