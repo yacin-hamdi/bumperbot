@@ -4,8 +4,12 @@ import rclpy
 from rclpy import Node
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseArray, Pose
-from tf_transformations import euler_from_quaternion
+from tf_transformations import euler_from_quaternion, quaternion_from_euler
 from math import sin, cos, atan2, sqrt, fabs, pi
+import numpy as np
+import random
+import time
+
 
 def angle_diff(a, b):
     a = atan2(sin(a), cos(a))
@@ -90,6 +94,41 @@ class OdometryMotionModel(Node):
 
         delta_rot2 = angle_diff(odom_theta_increment, delta_rot1)
         delta_transl = sqrt(pow(odom_x_increment, 2) + pow(odom_y_increment, 2))
+
+        rot1_variance = self.alpha1 * delta_rot1 + self.alpha2 * delta_transl
+        rot2_variance = self.alpha1 * delta_rot2 + self.alpha2 * delta_transl
+        transl_variance = self.alpha3 * delta_transl + self.alpha4 * (delta_rot1 + delta_rot2)
+
+        random.seed(int(time.time()))
+
+        for sample in self.samples.poses:
+
+            rot1_noise = random.gauss(0.0, rot1_variance)
+            rot2_noise = random.gauss(0.0, rot2_variance)
+            transl_noise = random.gauss(0.0, transl_variance)
+
+            delta_rot1_noise = angle_diff(delta_rot1, rot1_noise)
+            delta_rot2_noise = angle_diff(delta_rot2, rot2_noise)
+            delta_transl_noise = delta_transl - transl_noise
+
+            sample_roll, sample_pitch, sample_yaw = euler_from_quaternion([sample.orientation.x, 
+                                                                            sample.orientation.y,
+                                                                            sample.orientation.z, 
+                                                                            sample.orientation.w])
+
+
+            sample.position.x += delta_transl_noise * cos(sample_yaw + delta_rot1_noise)
+            sample.position.y += delta_transl_noise * sin(sample_yaw + delta_rot1_noise)
+            sample_q = quaternion_from_euler(0.0, 0.0, sample_yaw + delta_rot1_noise + delta_rot2_noise)
+            sample.orientation.x = sample_q[0]
+            sample.orientation.y = sample_q[1]
+            sample.orientation.z = sample_q[2]
+            sample.orientation.w = sample_q[3]
+
+        self.last_odom_x_ = odom.pose.pose.position.x
+        self.last_odom_y_ = odom.pose.pose.position.y
+        self.last_odom_theta_ = yaw
+        self.pose_array_pub_.publish(self.samples)
 
 
 
