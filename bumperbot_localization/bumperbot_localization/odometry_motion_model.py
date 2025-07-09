@@ -90,7 +90,7 @@ class OdometryMotionModel(Node):
         if sqrt(pow(odom_y_increment, 2) + pow(odom_x_increment, 2)) < 0.01:
             delta_rot1 = 0.0
         else:
-            delta_rot1 = angle_diff(atan2(odom_y_increment, odom_x_increment), self.last_odom_theta_)
+            delta_rot1 = angle_diff(atan2(odom_y_increment, odom_x_increment), yaw)
 
         delta_rot2 = angle_diff(odom_theta_increment, delta_rot1)
         delta_transl = sqrt(pow(odom_x_increment, 2) + pow(odom_y_increment, 2))
