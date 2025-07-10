@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import rclpy
-from rclpy import Node
+from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseArray, Pose
 from tf_transformations import euler_from_quaternion, quaternion_from_euler
@@ -28,7 +28,7 @@ def angle_diff(a, b):
 
 class OdometryMotionModel(Node):
     def __init__(self):
-        super.__init__("odometry_motion_model")
+        super().__init__("odometry_motion_model")
         self.is_first_time_ = True
         self.last_odom_x_ = 0.0
         self.last_odom_y_ = 0.0
@@ -83,8 +83,8 @@ class OdometryMotionModel(Node):
             self.is_first_time_ = False
             return
         
-        odom_x_increment = self.last_odom_x_ - odom.pose.pose.position.x
-        odom_y_increment = self.last_odom_y_ - odom.pose.pose.position.y
+        odom_x_increment = odom.pose.pose.position.x - self.last_odom_x_ 
+        odom_y_increment = odom.pose.pose.position.y - self.last_odom_y_ 
         odom_theta_increment = angle_diff(yaw, self.last_odom_theta_)
 
         if sqrt(pow(odom_y_increment, 2) + pow(odom_x_increment, 2)) < 0.01:

@@ -2,6 +2,7 @@
 #include <geometry_msgs/msg/pose.hpp>
 #include <tf2/utils.h>
 #include <cmath>
+#include <random>
 
 double angle_diff(double a, double b)
 {
@@ -95,8 +96,56 @@ void OdometryMotionModel::odomCallback(const nav_msgs::msg::Odometry &odom)
         delta_rot1 = angle_diff(atan2(odom_y_increment, odom_x_increment), yaw);
     }
     double delta_trasl = sqrt(std::pow(odom_x_increment, 2) + std::pow(odom_y_increment, 2));
-    
     double delta_rot2 = angle_diff(odom_theta_increment, delta_rot1);
 
+    double rot1_variance = alpha1 * delta_rot1 + alpha2 * delta_trasl;
+    double trasl_variance = alpha3 * delta_trasl + alpha4 * (delta_rot1 + delta_rot2);
+    double rot2_variance = alpha1 * delta_rot2 + alpha2 * delta_trasl;
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine noise_generator(seed);
+    std::normal_distribution<double> rot1_noise(0.0, rot1_variance);
+    std::normal_distribution<double> rot2_noise(0.0, rot2_variance);
+    std::normal_distribution<double> trasl_noise(0.0, trasl_variance);
+
+    for(auto &sample: samples.poses){
+        double delta_rot1_noise = angle_diff(delta_rot1, rot1_noise(noise_generator));
+        double delta_rot2_noise = angle_diff(delta_rot2, rot2_noise(noise_generator));
+        double delta_trasl_noise = delta_trasl - trasl_noise(noise_generator);
+
+        tf2::Quaternion sample_q(sample.orientation.x, 
+                                    sample.orientation.y, 
+                                    sample.orientation.z, 
+                                    sample.orientation.w);
+        tf2::Matrix3x3 sample_m(q);
+        double sample_roll, sample_pitch, sample_yaw;
+        sample_m.getRPY(sample_roll, sample_pitch, sample_yaw);
+
+        sample.position.x += delta_trasl_noise * std::cos(sample_yaw + delta_rot1_noise);
+        sample.position.y += delta_trasl_noise * std::sin(sample_yaw + delta_rot1_noise);
+
+        tf2::Quaternion q;
+        q.setRPY(0.0, 0.0, sample_yaw + delta_rot1_noise + delta_rot2_noise);
+        sample.orientation.x = q.getX();
+        sample.orientation.y = q.getY();
+        sample.orientation.z = q.getZ();
+        sample.orientation.w = q.getW();
+    }
+
+    last_odom_x_ = odom.pose.pose.position.x;
+    last_odom_y_ = odom.pose.pose.position.y;
+    last_odom_theta_ = yaw;
+
+    pose_array_pub_->publish(samples);
+
+}
+
+int main(int argc, char* argv[])
+{
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<OdometryMotionModel>("odometry_motion_model");
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
 }
 
