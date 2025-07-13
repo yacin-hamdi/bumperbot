@@ -8,6 +8,8 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(rclcpp_components REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(geometry_msgs REQUIRED)
@@ -28,6 +30,25 @@ ament_target_dependencies(simple_tf_kinematics rclcpp geometry_msgs tf2_ros)
 ament_target_dependencies(simple_service_server rclcpp bumperbot_msgs)
 ament_target_dependencies(simple_service_client rclcpp bumperbot_msgs)
 
+add_library(simple_action_server SHARED src/simple_action_server.cpp)
+target_include_directories(simple_action_server PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  )
+
+target_compile_definitions(simple_action_server
+  PRIVATE "SIMPLE_ACTION_SERVER_CPP_BUILDING__DLL")
+ament_target_dependencies(simple_action_server
+  "bumperbot_msgs"
+  "rclcpp"
+  "rclcpp_action"
+  "rclcpp_components")
+
+rclcpp_components_register_node(simple_action_server
+  PLUGIN "bumperbot_cpp_examples::SimpleActionServer"
+  EXECUTABLE simple_action_server_node 
+)
+
 install(TARGETS
   simple_publisher
   simple_subscriber
@@ -37,6 +58,13 @@ install(TARGETS
   simple_service_client
   DESTINATION lib/${PROJECT_NAME}
 )
+
+install(TARGETS
+  simple_action_server
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib
+  )
 
 
 if(BUILD_TESTING)
