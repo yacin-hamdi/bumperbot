@@ -26,7 +26,8 @@ setup(
             'turtlesim_kinematics = bumperbot_python_examples.turtlesim_kinematics:main', 
             'simple_tf_kinematics = bumperbot_python_examples.simple_tf_kinematics:main',
             "simple_service_server = bumperbot_python_examples.simple_service_server:main", 
-            "simple_service_client = bumperbot_python_examples.simple_service_client:main"
+            "simple_service_client = bumperbot_python_examples.simple_service_client:main", 
+            "simple_action_client = bumperbot_python_examples.simple_action_client:main"
         ],
     },
 )
