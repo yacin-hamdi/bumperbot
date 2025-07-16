@@ -31,7 +31,7 @@ class TwistRelay(Node):
 
         self.joy_pub_ = self.create_publisher(
             Twist, 
-            "input_joy/cmd_vel", 
+            "/input_joy/cmd_vel", 
             10
         )
 
