@@ -34,6 +34,12 @@ ament_target_dependencies(simple_service_client rclcpp bumperbot_msgs)
 add_executable(simple_lifecycle_node src/simple_lifecycle_node.cpp)
 ament_target_dependencies(simple_lifecycle_node rclcpp rclcpp_lifecycle std_msgs)
 
+add_executable(simple_qos_publisher src/simple_qos_publisher.cpp)
+ament_target_dependencies(simple_qos_publisher rclcpp std_msgs)
+
+add_executable(simple_qos_subscriber src/simple_qos_subscriber.cpp)
+ament_target_dependencies(simple_qos_subscriber rclcpp std_msgs)
+
 add_library(simple_action_server SHARED src/simple_action_server.cpp)
 target_include_directories(simple_action_server PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -61,6 +67,8 @@ install(TARGETS
   simple_service_server
   simple_service_client
   simple_lifecycle_node
+  simple_qos_publisher
+  simple_qos_subscriber
   DESTINATION lib/${PROJECT_NAME}
 )
 
