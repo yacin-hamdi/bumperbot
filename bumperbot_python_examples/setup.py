@@ -28,7 +28,9 @@ setup(
             "simple_service_server = bumperbot_python_examples.simple_service_server:main", 
             "simple_service_client = bumperbot_python_examples.simple_service_client:main", 
             "simple_action_client = bumperbot_python_examples.simple_action_client:main",
-            "simple_lifecycle_node = bumperbot_python_examples.simple_lifecycle_node:main"
+            "simple_lifecycle_node = bumperbot_python_examples.simple_lifecycle_node:main",
+            'simple_qos_publisher = bumperbot_python_examples.simple_qos_publisher:main',
+            'simple_qos_subscriber = bumperbot_python_examples.simple_qos_subscriber:main'
         ],
     },
 )
