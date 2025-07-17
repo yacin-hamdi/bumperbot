@@ -26,6 +26,8 @@ def generate_launch_description():
         "map.yaml"
     ])
 
+    lifecycle_nodes =["map_server"]
+
     nav2_map_server = Node(
         package="nav2_map_server", 
         executable="map_server", 
@@ -36,8 +38,21 @@ def generate_launch_description():
         ]
     )
 
+    nav2_lifecycle_manager = Node(
+        package="nav2_lifecycle_manager", 
+        executable="lifecycle_manager", 
+        name="lifecycle_manager_localization",
+        output="screen", 
+        parameters=[
+            {"node_names": lifecycle_nodes}, 
+            {"use_sim_time": use_sim_time},
+            {"autostart": True}
+        ]
+    )
+
     return LaunchDescription([
         use_sim_time_arg, 
         map_name_arg, 
-        nav2_map_server
+        nav2_map_server,
+        nav2_lifecycle_manager
     ])
