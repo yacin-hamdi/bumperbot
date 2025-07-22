@@ -62,14 +62,14 @@ public:
         timer_ = create_wall_timer(1s, std::bind(&MappingWithKnownPoses::timerCallback, this));
         
         map_.header.frame_id = "odom";
-        map_.info.width = std::round(width * resolution);
-        map_.info.height = std::round(height * resolution);
+        map_.info.width = std::round(width / resolution);
+        map_.info.height = std::round(height / resolution);
         map_.info.resolution = resolution;
         map_.info.origin.position.x = -std::round(width / 2.0);
         map_.info.origin.position.y = -std::round(height / 2.0);
-        map_.data = std::vector<int8_t>(map_.info.width * map_.info.height, -1.0);
+        map_.data = std::vector<int8_t>(map_.info.width * map_.info.height, -1);
 
-        tf_buffer_ = std::make_unique<tf2_ros::Buffer>(get_clock());
+        tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
         tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
 

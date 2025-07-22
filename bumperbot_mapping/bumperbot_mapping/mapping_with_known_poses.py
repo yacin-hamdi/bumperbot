@@ -40,8 +40,8 @@ class MappingWithKnownPoses(Node):
         resolution = self.get_parameter("resolution").value
 
         self.map_ = OccupancyGrid()
-        self.map_.info.width = round(width * resolution)
-        self.map_.info.height = round(height * resolution)
+        self.map_.info.width = round(width / resolution)
+        self.map_.info.height = round(height / resolution)
         self.map_.info.resolution = resolution
         self.map_.info.origin.position.x = float(-round(width/2.0))
         self.map_.info.origin.position.y = float(-round(height/2.0))
