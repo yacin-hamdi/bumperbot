@@ -5,6 +5,9 @@
 #include <tf2_ros/transform_listener.h>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <tf2/utils.h>
+#include <math.h>
+
+
 
 using namespace std::chrono_literals;
 
@@ -95,13 +98,38 @@ private:
 
         Pose robot_pose = coordinateToPose(t.transform.translation.x, t.transform.translation.y, map_.info);
 
-        if(not poseOnMap){
+        if(!poseOnMap(robot_pose, map_.info)){
             RCLCPP_ERROR(get_logger(), "The robot is out of the map!");
             return;
         }
 
-        unsigned int robot_cell = poseToCell(robot_pose, map_.info);
-        map_.data.at(robot_cell) = 100;
+        tf2::Quaternion q(
+            t.transform.rotation.x, 
+            t.transform.rotation.y, 
+            t.transform.rotation.z, 
+            t.transform.rotation.w);
+
+        tf2::Matrix3x3 m(q);
+        double roll, pitch, yaw;
+        m.getRPY(roll, pitch, yaw);
+
+        for(size_t i = 0; i < msg.ranges.size(); i++){
+            double angle = msg.angle_min + (i * msg.angle_increment) + yaw;
+            double px = msg.ranges[i] * std::cos(angle);
+            double py = msg.ranges[i] * std::sin(angle);
+            px += t.transform.translation.x;
+            py += t.transform.translation.y;
+            Pose obj_pose = coordinateToPose(px, py, map_.info);
+            if(!poseOnMap(obj_pose, map_.info)){
+                continue;
+            }
+            unsigned int obj_cell = poseToCell(obj_pose, map_.info);
+            map_.data.at(obj_cell) = 100;
+
+        }
+
+        // unsigned int robot_cell = poseToCell(robot_pose, map_.info);
+        // map_.data.at(robot_cell) = 100;
 
 
     }
